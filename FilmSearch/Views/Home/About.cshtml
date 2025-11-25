@@ -1,0 +1,114 @@
+﻿@{
+    ViewData["Title"] = "О системе";
+}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="text-center mb-5">
+            <h1 class="display-4">О нашей системе</h1>
+            <p class="lead">Умные рекомендации фильмов на основе искусственного интеллекта</p>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <span style="font-size: 3rem;">🎬</span>
+                        </div>
+                        <h3 class="card-title">Обширная база</h3>
+                        <p class="card-text">Тысячи фильмов различных жанров, годов и стран производства</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <span style="font-size: 3rem;">🤖</span>
+                        </div>
+                        <h3 class="card-title">ИИ-рекомендации</h3>
+                        <p class="card-text">Персонализированные предложения на основе ваших предпочтений</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-5">
+            <div class="card-header bg-light">
+                <h4 class="mb-0">Как это работает?</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">1</div>
+                            <div>
+                                <h5>Оценивайте фильмы</h5>
+                                <p class="text-muted mb-0">Ставьте оценки просмотренным фильмам</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">2</div>
+                            <div>
+                                <h5>Анализ предпочтений</h5>
+                                <p class="text-muted mb-0">Система изучает ваши вкусы</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">3</div>
+                            <div>
+                                <h5>Получайте рекомендации</h5>
+                                <p class="text-muted mb-0">Находите новые интересные фильмы</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Наша миссия</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Мы помогаем людям открывать для себя удивительные фильмы, которые действительно соответствуют их вкусам и предпочтениям.</p>
+                        <p>Благодаря передовым алгоритмам машинного обучения, мы создаем персонализированные рекомендации для каждого пользователя.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Технологии</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li>✅ Коллаборативная фильтрация</li>
+                            <li>✅ Контентная фильтрация</li>
+                            <li>✅ Машинное обучение</li>
+                            <li>✅ Объяснимый ИИ</li>
+                            <li>✅ Веб-технологии ASP.NET Core</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <div class="alert alert-success">
+                <h4>Готовы начать?</h4>
+                <p class="mb-3">Присоединяйтесь к нашему сообществу киноманов!</p>
+                <a href="@Url.Action("Register", "Account")" class="btn btn-success me-2">Зарегистрироваться</a>
+                <a href="@Url.Action("Index", "Recommendation")" class="btn btn-outline-primary">Посмотреть рекомендации</a>
+            </div>
+        </div>
+    </div>
+</div>

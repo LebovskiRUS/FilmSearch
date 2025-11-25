@@ -1,0 +1,63 @@
+﻿@{
+    ViewData["Title"] = "Регистрация";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Создать аккаунт</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" action="@Url.Action("Register", "Account")">
+                    <div class="form-group mb-3">
+                        <label for="username" class="form-label">Имя пользователя</label>
+                        <input type="text" class="form-control" id="username" name="username" required
+                               placeholder="Введите ваше имя">
+                        <div class="form-text">От 3 до 20 символов</div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required
+                               placeholder="example@mail.com">
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="password" class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="password" name="password" required
+                               placeholder="Не менее 6 символов">
+                        <div class="form-text">Пароль должен содержать не менее 6 символов</div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="confirmPassword" class="form-label">Подтвердите пароль</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required
+                               placeholder="Повторите пароль">
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Зарегистрироваться</button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="mb-2">Уже есть аккаунт?</p>
+                    <a href="@Url.Action("Login", "Account")" class="btn btn-outline-secondary">Войти в систему</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <div class="alert alert-info">
+                <h5 class="alert-heading">Преимущества регистрации:</h5>
+                <ul class="mb-0">
+                    <li>Персонализированные рекомендации фильмов</li>
+                    <li>Сохранение истории оценок</li>
+                    <li>Доступ к расширенным функциям</li>
+                    <li>Синхронизация между устройствами</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,30 @@
+﻿@model RecommendationViewModel
+
+@{
+    ViewData["Title"] = "Персонализированные рекомендации";
+}
+
+<h2>Ваши рекомендации</h2>
+
+@if (!string.IsNullOrEmpty(Model.Explanation))
+{
+    <div class="alert alert-info">
+        <strong>Объяснение:</strong> @Model.Explanation
+    </div>
+}
+
+<div class="row">
+    @foreach (var movie in Model.RecommendedMovies)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <img src="@movie.ImageUrl" class="card-img-top" alt="@movie.Title" style="height: 300px; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title">@movie.Title (@movie.Year)</h5>
+                    <p class="card-text">@movie.Genre</p>
+                    <a href="@Url.Action("Rate", "Movie", new { movieId = movie.Id })" class="btn btn-primary">Оценить</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

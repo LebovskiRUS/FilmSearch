@@ -1,0 +1,33 @@
+﻿@model List<Movie>
+
+@{
+    ViewData["Title"] = "Рекомендации фильмов";
+}
+
+<div class="hero-section">
+    <h1>Откройте свой следующий любимый фильм</h1>
+    <p>Персонализированные рекомендации на основе искусственного интеллекта</p>
+    <div class="mt-4">
+        <a href="@Url.Action("Index", "Recommendation")" class="btn btn-primary btn-lg me-3">Получить рекомендации</a>
+        <a href="@Url.Action("About", "Home")" class="btn btn-outline-light btn-lg">Узнать больше</a>
+    </div>
+</div>
+
+<div class="popular-movies mt-5">
+    <h2>Популярные фильмы</h2>
+    <div class="row">
+        @foreach (var movie in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <img src="@movie.ImageUrl" class="card-img-top" alt="@movie.Title" style="height: 300px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">@movie.Title (@movie.Year)</h5>
+                        <p class="card-text">@movie.Genre</p>
+                        <a href="@Url.Action("Rate", "Movie", new { movieId = movie.Id })" class="btn btn-outline-primary">Оценить</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

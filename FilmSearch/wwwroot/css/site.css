@@ -1,0 +1,184 @@
+/* Общие настройки и структура */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* основной механизм "прилипания" footer к низу */
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* Основной контент приложения — должен занимать оставшееся пространство */
+.site-main {
+    flex: 1 0 auto;
+    display: block;
+}
+
+/* Footer всегда внизу благодаря вышеуказанному layout */
+footer {
+    flex-shrink: 0;
+    background: #f8f9fa;
+    padding: 18px 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Hero */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 100px 0;
+    text-align: center;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+    .hero-section h1 {
+        font-size: 3rem;
+        margin-bottom: 20px;
+    }
+
+    .hero-section p {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+    }
+
+/* Navbar */
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Inputs */
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Карточки */
+.card {
+    transition: all 0.3s ease;
+    border-radius: 6px;
+}
+
+    .card:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+/* Рейтинг */
+.rating-stars {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rating-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 0 5px;
+    transition: all 0.12s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+    .rating-btn:hover {
+        transform: scale(1.06);
+    }
+
+    /* Outline / Filled variants (Bootstrap классы используются в разметке) */
+    .rating-btn.btn-outline-warning {
+        background: transparent;
+        border: 2px solid #ffc107;
+        color: #ffc107;
+    }
+
+    .rating-btn.btn-warning {
+        background: #ffc107;
+        border-color: #ffc107;
+        color: #212529;
+    }
+
+.star-text {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.rating-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.rating-labels {
+    width: 100%;
+    padding: 0 10px;
+}
+
+/* Небольшие улучшения для изображений в карточках */
+.card-img-top {
+    object-fit: cover;
+}
+
+/* Круглые бейджи (например, в About) — гарантируют идеальную окружность */
+.rounded-circle.d-flex,
+.number-circle {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Если где-то нужно чуть компактнее на мобилах */
+@media (max-width: 768px) {
+    .rating-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1rem;
+    }
+
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+
+    .hero-section p {
+        font-size: 1rem;
+    }
+
+    .rating-stars {
+        gap: 8px;
+    }
+
+    .rounded-circle.d-flex,
+    .number-circle {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        min-height: 36px;
+    }
+}
+
+/* Типографика */
+.lead {
+    font-size: 1.25rem;
+    font-weight: 300;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
