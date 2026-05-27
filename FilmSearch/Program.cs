@@ -34,6 +34,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<DatabaseInitializer>();
+builder.Services.AddScoped<AdminBootstrapper>();
 builder.Services.AddScoped<IMovieLensImportService, MovieLensImportService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IMovieService, MovieService>();
@@ -46,6 +47,9 @@ using (var scope = app.Services.CreateScope())
 {
     var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
     await initializer.InitializeAsync();
+
+    var adminBootstrapper = scope.ServiceProvider.GetRequiredService<AdminBootstrapper>();
+    await adminBootstrapper.EnsureAdminAsync();
 }
 
 if (!app.Environment.IsDevelopment())

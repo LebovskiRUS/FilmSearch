@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Администрирование";
+    var defaultDatasetDirectory = ViewData["DefaultDatasetDirectory"] as string ?? string.Empty;
+}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h2>Администрирование</h2>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Импорт MovieLens 1M</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="@Url.Action("ImportMovieLens", "Admin")">
+                    <div class="mb-3">
+                        <label for="datasetDirectory" class="form-label">Папка с датасетом</label>
+                        <input type="text"
+                               class="form-control"
+                               id="datasetDirectory"
+                               name="datasetDirectory"
+                               value="@defaultDatasetDirectory"
+                               placeholder="C:\Users\Gouler\Desktop\Документы\практика_3_курс\ml-1m"
+                               required>
+                        <div class="form-text">В папке должны быть файлы users.dat, movies.dat и ratings.dat.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Запустить импорт</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
