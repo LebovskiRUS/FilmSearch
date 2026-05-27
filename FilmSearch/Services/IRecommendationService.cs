@@ -1,6 +1,7 @@
 using FilmSearch.Data;
 using FilmSearch.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace FilmSearch.Services
 {
@@ -12,10 +13,17 @@ namespace FilmSearch.Services
     public class BaselineRecommendationService : IRecommendationService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMlRecommendationClient _mlClient;
+        private readonly MlRecommendationOptions _mlOptions;
 
-        public BaselineRecommendationService(ApplicationDbContext context)
+        public BaselineRecommendationService(
+            ApplicationDbContext context,
+            IMlRecommendationClient mlClient,
+            IOptions<MlRecommendationOptions> mlOptions)
         {
             _context = context;
+            _mlClient = mlClient;
+            _mlOptions = mlOptions.Value;
         }
 
         public async Task<RecommendationViewModel> GetRecommendationsAsync(
@@ -33,12 +41,106 @@ namespace FilmSearch.Services
                 };
             }
 
-            var userRatings = await _context.Ratings
+            var userRatings = await GetUserRatingsAsync(userId.Value, cancellationToken);
+            var mlResult = await TryGetMlRecommendationsAsync(userId.Value, userRatings, take, cancellationToken);
+            if (mlResult is not null)
+            {
+                return mlResult;
+            }
+
+            return await GetBaselineRecommendationsAsync(userId.Value, userRatings, take, cancellationToken);
+        }
+
+        private async Task<RecommendationViewModel?> TryGetMlRecommendationsAsync(
+            int userId,
+            List<Rating> userRatings,
+            int take,
+            CancellationToken cancellationToken)
+        {
+            if (!_mlOptions.Enabled || userRatings.Count < _mlOptions.MinimumRatings)
+            {
+                return null;
+            }
+
+            var mlRatings = userRatings
+                .Where(rating => rating.Movie?.MovieLensId is not null)
+                .Select(rating => new MlRatingDto
+                {
+                    MovieLensId = rating.Movie!.MovieLensId!.Value,
+                    Rating = rating.Value
+                })
+                .ToList();
+
+            if (mlRatings.Count < _mlOptions.MinimumRatings)
+            {
+                return null;
+            }
+
+            var ratedMovieLensIds = mlRatings
+                .Select(rating => rating.MovieLensId)
+                .ToHashSet();
+
+            var candidates = await _context.Movies
                 .AsNoTracking()
-                .Include(rating => rating.Movie)
-                .Where(rating => rating.UserId == userId.Value)
+                .Where(movie => movie.MovieLensId != null && !ratedMovieLensIds.Contains(movie.MovieLensId.Value))
+                .OrderByDescending(movie => movie.RatingsCount)
+                .ThenByDescending(movie => movie.AverageRating)
+                .Take(_mlOptions.CandidateLimit)
+                .Select(movie => movie.MovieLensId!.Value)
                 .ToListAsync(cancellationToken);
 
+            var response = await _mlClient.GetRecommendationsAsync(new MlRecommendationRequest
+            {
+                UserId = userId,
+                Ratings = mlRatings,
+                Candidates = candidates,
+                Take = take
+            }, cancellationToken);
+
+            if (response?.Recommendations.Count is null or 0)
+            {
+                return null;
+            }
+
+            var movieLensIds = response.Recommendations
+                .Select(item => item.MovieLensId)
+                .ToList();
+
+            var movies = await _context.Movies
+                .AsNoTracking()
+                .Where(movie => movie.MovieLensId != null && movieLensIds.Contains(movie.MovieLensId.Value))
+                .ToListAsync(cancellationToken);
+
+            var moviesByMovieLensId = movies
+                .Where(movie => movie.MovieLensId is not null)
+                .ToDictionary(movie => movie.MovieLensId!.Value);
+
+            var orderedMovies = response.Recommendations
+                .Where(item => moviesByMovieLensId.ContainsKey(item.MovieLensId))
+                .Select(item => moviesByMovieLensId[item.MovieLensId])
+                .ToList();
+
+            if (orderedMovies.Count == 0)
+            {
+                return null;
+            }
+
+            await SaveRecommendationEventsAsync(userId, response.Recommendations, response.ModelVersion, cancellationToken);
+
+            return new RecommendationViewModel
+            {
+                RecommendedMovies = orderedMovies,
+                Explanation = "Рекомендации рассчитаны PyTorch-моделью на основе ваших оценок.",
+                ModelVersion = response.ModelVersion
+            };
+        }
+
+        private async Task<RecommendationViewModel> GetBaselineRecommendationsAsync(
+            int userId,
+            List<Rating> userRatings,
+            int take,
+            CancellationToken cancellationToken)
+        {
             if (userRatings.Count < 5)
             {
                 return new RecommendationViewModel
@@ -84,7 +186,7 @@ namespace FilmSearch.Services
                 .Take(take)
                 .ToList();
 
-            await SaveRecommendationEventsAsync(userId.Value, recommended, cancellationToken);
+            await SaveBaselineRecommendationEventsAsync(userId, recommended, cancellationToken);
 
             return new RecommendationViewModel
             {
@@ -92,6 +194,15 @@ namespace FilmSearch.Services
                 Explanation = $"Вам могут понравиться эти фильмы, потому что вы высоко оценивали жанры: {string.Join(", ", favoriteGenres)}.",
                 ModelVersion = "baseline-genre"
             };
+        }
+
+        private Task<List<Rating>> GetUserRatingsAsync(int userId, CancellationToken cancellationToken)
+        {
+            return _context.Ratings
+                .AsNoTracking()
+                .Include(rating => rating.Movie)
+                .Where(rating => rating.UserId == userId)
+                .ToListAsync(cancellationToken);
         }
 
         private Task<List<Movie>> GetPopularMoviesAsync(int take, CancellationToken cancellationToken)
@@ -105,7 +216,37 @@ namespace FilmSearch.Services
                 .ToListAsync(cancellationToken);
         }
 
-        private async Task SaveRecommendationEventsAsync(int userId, List<Movie> movies, CancellationToken cancellationToken)
+        private async Task SaveRecommendationEventsAsync(
+            int userId,
+            List<MlRecommendationItem> recommendations,
+            string modelVersion,
+            CancellationToken cancellationToken)
+        {
+            var movieLensIds = recommendations.Select(item => item.MovieLensId).ToList();
+            var movies = await _context.Movies
+                .AsNoTracking()
+                .Where(movie => movie.MovieLensId != null && movieLensIds.Contains(movie.MovieLensId.Value))
+                .Select(movie => new { movie.Id, MovieLensId = movie.MovieLensId!.Value })
+                .ToListAsync(cancellationToken);
+
+            var movieIdByMovieLensId = movies.ToDictionary(movie => movie.MovieLensId, movie => movie.Id);
+            var now = DateTime.UtcNow;
+            var events = recommendations
+                .Where(item => movieIdByMovieLensId.ContainsKey(item.MovieLensId))
+                .Select(item => new RecommendationEvent
+                {
+                    UserId = userId,
+                    MovieId = movieIdByMovieLensId[item.MovieLensId],
+                    Score = item.Score,
+                    ModelVersion = modelVersion,
+                    ShownAt = now
+                });
+
+            _context.RecommendationEvents.AddRange(events);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        private async Task SaveBaselineRecommendationEventsAsync(int userId, List<Movie> movies, CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
             var events = movies.Select(movie => new RecommendationEvent
