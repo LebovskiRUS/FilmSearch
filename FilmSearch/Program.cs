@@ -1,5 +1,6 @@
-using MovieRecommendationSystem.Services;
+using FilmSearch.Data;
 using Microsoft.EntityFrameworkCore;
+using MovieRecommendationSystem.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +15,11 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Register services
 builder.Services.AddScoped<IRecommendationService, MockRecommendationService>();
+
 
 var app = builder.Build();
 
@@ -36,6 +39,15 @@ app.UseAuthorization();
 
 // Add session middleware
 app.UseSession();
+
+if (app.Environment.IsDevelopment())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+    }
+}
 
 app.MapControllerRoute( 
     name: "default",

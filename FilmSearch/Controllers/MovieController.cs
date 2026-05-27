@@ -1,10 +1,13 @@
-﻿using FilmSearch.Models;
+﻿using FilmSearch.Data.Repositories;
+using FilmSearch.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FilmSearch.Controllers
 {
     public class MovieController : Controller
     {
+        private readonly MovieRepository _movieRepository;
+        private readonly IUserRepository _userRepository;
         public IActionResult Index()
         {
             // Заглушка для списка фильмов 
