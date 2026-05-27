@@ -85,6 +85,8 @@ def train(args: argparse.Namespace) -> None:
         movies_count=len(index_to_movie),
         embedding_dim=args.embedding_dim,
     ).to(device)
+    with torch.no_grad():
+        model.global_bias.fill_(float(np.mean(ratings)))
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     loss_fn = nn.MSELoss()
@@ -102,7 +104,7 @@ def train(args: argparse.Namespace) -> None:
             batch_ratings = batch_ratings.to(device)
 
             optimizer.zero_grad()
-            predictions = model(batch_users, batch_movies).clamp(1.0, 5.0)
+            predictions = model(batch_users, batch_movies)
             loss = loss_fn(predictions, batch_ratings)
             loss.backward()
             optimizer.step()
