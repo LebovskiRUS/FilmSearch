@@ -14,6 +14,13 @@
 }
 
 <div class="row">
+    @if (Model.RecommendedMovies.Count == 0)
+    {
+        <div class="col-12">
+            <div class="alert alert-info">Рекомендации пока недоступны: каталог фильмов пуст или не хватает оценок.</div>
+        </div>
+    }
+
     @foreach (var movie in Model.RecommendedMovies)
     {
         <div class="col-md-4 mb-4">

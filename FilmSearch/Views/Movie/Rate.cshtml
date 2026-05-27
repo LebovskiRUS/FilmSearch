@@ -126,7 +126,7 @@
         document.querySelectorAll('.rating-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 const rating = this.getAttribute('data-rating');
-                const movieTitle = '@Model.Title';
+                const movieTitle = '@(Model?.Title ?? string.Empty)';
 
                 // Можно добавить подтверждение или анимацию
                 console.log(`Оценка ${rating} для фильма "${movieTitle}"`);

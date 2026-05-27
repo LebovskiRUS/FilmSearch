@@ -1,27 +1,35 @@
-﻿using FilmSearch.Data.Repositories;
-using FilmSearch.Models;
+﻿using System.Security.Claims;
+using FilmSearch.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FilmSearch.Controllers
 {
     public class MovieController : Controller
     {
-        private readonly MovieRepository _movieRepository;
-        private readonly IUserRepository _userRepository;
-        public IActionResult Index()
-        {
-            // Заглушка для списка фильмов 
-            var movies = GetAllMovies();
+        private readonly IMovieService _movieService;
+        private readonly IRatingService _ratingService;
 
+        public MovieController(IMovieService movieService, IRatingService ratingService)
+        {
+            _movieService = movieService;
+            _ratingService = ratingService;
+        }
+
+        public async Task<IActionResult> Index(string? query, string? genre, CancellationToken cancellationToken)
+        {
+            ViewData["Query"] = query;
+            ViewData["Genre"] = genre;
+
+            var movies = await _movieService.SearchAsync(query, genre, 100, cancellationToken);
             return View(movies);
         }
 
-        public IActionResult Rate(int movieId)
+        [Authorize]
+        public async Task<IActionResult> Rate(int movieId, CancellationToken cancellationToken)
         {
-            // Заглушка для получения фильма по ID
-            var movie = GetMovieById(movieId);
-
-            if (movie == null)
+            var movie = await _movieService.GetByIdAsync(movieId, cancellationToken);
+            if (movie is null)
             {
                 return NotFound();
             }
@@ -29,73 +37,26 @@ namespace FilmSearch.Controllers
             return View(movie);
         }
 
+        [Authorize]
         [HttpPost]
-        public IActionResult Rate(int movieId, int rating)
+        public async Task<IActionResult> Rate(int movieId, int rating, CancellationToken cancellationToken)
         {
-            // Заглушка для оценки фильма
-            TempData["Message"] = $"Спасибо! Вы поставили оценку {rating} фильму.";
+            var userId = GetCurrentUserId();
+            if (userId is null)
+            {
+                return Challenge();
+            }
+
+            var result = await _ratingService.RateAsync(userId.Value, movieId, rating, cancellationToken);
+            TempData[result.Success ? "Message" : "Error"] = result.Message;
+
             return RedirectToAction("Index");
         }
 
-        private Movie GetMovieById(int movieId)
+        private int? GetCurrentUserId()
         {
-            var movies = GetAllMovies();
-            return movies.FirstOrDefault(m => m.Id == movieId);
-        }
-
-        private List<Movie> GetAllMovies()
-        {
-            return new List<Movie>
-            {
-                new Movie {
-                    Id = 1,
-                    Title = "Крестный отец",
-                    Genre = "Криминал",
-                    Year = 1972,
-                    Description = "Эпическая сага о сицилийской мафиозной семье.",
-                    ImageUrl = "/images/godfather.jpg"
-                },
-                new Movie {
-                    Id = 2,
-                    Title = "Форрест Гамп",
-                    Genre = "Драма",
-                    Year = 1994,
-                    Description = "История человека с добрым сердцем.",
-                    ImageUrl = "/images/forrestgump.jpg"
-                },
-                new Movie {
-                    Id = 3,
-                    Title = "Начало",
-                    Genre = "Фантастика",
-                    Year = 2010,
-                    Description = "Проникновение в сны других людей.",
-                    ImageUrl = "/images/inception.jpg"
-                },
-                new Movie {
-                    Id = 4,
-                    Title = "Крестный отец 2",
-                    Genre = "Криминал",
-                    Year = 1974,
-                    Description = "Продолжение эпической саги о семье Корлеоне.",
-                    ImageUrl = "/images/godfather2.jpg"
-                },
-                new Movie {
-                    Id = 5,
-                    Title = "Славные парни",
-                    Genre = "Криминал",
-                    Year = 1990,
-                    Description = "Хроника жизни и падения преступной группировки.",
-                    ImageUrl = "/images/goodfellas.jpg"
-                },
-                new Movie {
-                    Id = 6,
-                    Title = "Лицо со шрамом",
-                    Genre = "Криминал",
-                    Year = 1983,
-                    Description = "Икона криминального кино о стремлении к власти.",
-                    ImageUrl = "/images/scarface.jpg"
-                }
-            };
+            var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(value, out var userId) ? userId : null;
         }
     }
 }

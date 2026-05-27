@@ -6,7 +6,26 @@
 
 <h2>Каталог фильмов</h2>
 
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-7">
+        <input type="search" name="query" value="@ViewData["Query"]" class="form-control" placeholder="Поиск по названию">
+    </div>
+    <div class="col-md-3">
+        <input type="search" name="genre" value="@ViewData["Genre"]" class="form-control" placeholder="Жанр">
+    </div>
+    <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-primary">Найти</button>
+    </div>
+</form>
+
 <div class="row">
+    @if (Model.Count == 0)
+    {
+        <div class="col-12">
+            <div class="alert alert-info">Фильмы пока не загружены или ничего не найдено.</div>
+        </div>
+    }
+
     @foreach (var movie in Model)
     {
         <div class="col-md-6 mb-4">

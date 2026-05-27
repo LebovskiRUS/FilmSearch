@@ -17,7 +17,7 @@ namespace FilmSearch.Data.Repositories
             return await _context.Movies.ToListAsync();
         }
 
-        public async Task<Movie> GetByIdAsync(int id)
+        public async Task<Movie?> GetByIdAsync(int id)
         {
             return await _context.Movies.FindAsync(id);
         }
