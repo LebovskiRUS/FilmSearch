@@ -29,7 +29,7 @@
                 <div class="card-body">
                     <h5 class="card-title">@movie.Title (@movie.Year)</h5>
                     <p class="card-text">@movie.Genre</p>
-                    <a href="@Url.Action("Rate", "Movie", new { movieId = movie.Id })" class="btn btn-primary">Оценить</a>
+                    <a href="@Url.Action("OpenMovie", "Recommendation", new { movieId = movie.Id })" class="btn btn-primary">Открыть</a>
                 </div>
             </div>
         </div>

@@ -2,6 +2,7 @@ using FilmSearch.Data;
 using FilmSearch.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +41,12 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IRecommendationService, BaselineRecommendationService>();
+builder.Services.Configure<MlRecommendationOptions>(builder.Configuration.GetSection("MlRecommendation"));
+builder.Services.AddHttpClient<IMlRecommendationClient, MlRecommendationClient>((serviceProvider, httpClient) =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<MlRecommendationOptions>>().Value;
+    httpClient.BaseAddress = new Uri(options.BaseUrl);
+});
 
 var app = builder.Build();
 
