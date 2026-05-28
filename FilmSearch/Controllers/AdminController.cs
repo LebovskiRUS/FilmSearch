@@ -1,46 +1,36 @@
 using FilmSearch.Data;
 using FilmSearch.Models;
+using FilmSearch.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FilmSearch.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IAdminMovieService _adminMovieService;
         private readonly IMovieLensImportService _movieLensImportService;
         private readonly IConfiguration _configuration;
 
         public AdminController(
-            ApplicationDbContext context,
+            IAdminMovieService adminMovieService,
             IMovieLensImportService movieLensImportService,
             IConfiguration configuration)
         {
-            _context = context;
+            _adminMovieService = adminMovieService;
             _movieLensImportService = movieLensImportService;
             _configuration = configuration;
         }
 
         public async Task<IActionResult> Index(string? query, CancellationToken cancellationToken)
         {
-            ViewData["Query"] = query;
-            ViewData["DefaultDatasetDirectory"] = _configuration["MovieLens:DatasetDirectory"] ?? string.Empty;
-
-            var movies = _context.Movies.AsNoTracking();
-            if (!string.IsNullOrWhiteSpace(query))
+            return View(new AdminMoviesViewModel
             {
-                var pattern = $"%{query.Trim()}%";
-                movies = movies.Where(movie => EF.Functions.ILike(movie.Title, pattern));
-            }
-
-            var model = await movies
-                .OrderByDescending(movie => movie.Id)
-                .Take(50)
-                .ToListAsync(cancellationToken);
-
-            return View(model);
+                Query = query,
+                DefaultDatasetDirectory = _configuration["MovieLens:DatasetDirectory"] ?? string.Empty,
+                Movies = await _adminMovieService.SearchAsync(query, cancellationToken: cancellationToken)
+            });
         }
 
         [HttpPost]
@@ -66,30 +56,15 @@ namespace FilmSearch.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateMovie(
-            string title,
-            int? year,
-            string genres,
-            string? description,
-            string? imageUrl,
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> CreateMovie(MovieFormViewModel form, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(genres))
+            if (!ModelState.IsValid)
             {
-                TempData["Error"] = "Укажите название и жанры фильма.";
+                TempData["Error"] = "Проверьте данные фильма.";
                 return RedirectToAction(nameof(Index));
             }
 
-            _context.Movies.Add(new Movie
-            {
-                Title = title.Trim(),
-                Year = year,
-                Genres = genres.Trim(),
-                Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
-                ImageUrl = string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl.Trim()
-            });
-
-            await _context.SaveChangesAsync(cancellationToken);
+            await _adminMovieService.CreateAsync(form, cancellationToken);
             TempData["Message"] = "Фильм добавлен.";
 
             return RedirectToAction(nameof(Index));
@@ -97,65 +72,37 @@ namespace FilmSearch.Controllers
 
         public async Task<IActionResult> EditMovie(int id, CancellationToken cancellationToken)
         {
-            var movie = await _context.Movies
-                .AsNoTracking()
-                .FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
-
-            if (movie is null)
-            {
-                return NotFound();
-            }
-
-            return View(movie);
+            var form = await _adminMovieService.GetFormAsync(id, cancellationToken);
+            return form is null ? NotFound() : View(form);
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditMovie(
-            int id,
-            string title,
-            int? year,
-            string genres,
-            string? description,
-            string? imageUrl,
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> EditMovie(MovieFormViewModel form, CancellationToken cancellationToken)
         {
-            var movie = await _context.Movies.FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
-            if (movie is null)
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Проверьте данные фильма.";
+                return View(form);
+            }
+
+            if (!await _adminMovieService.UpdateAsync(form, cancellationToken))
             {
                 return NotFound();
             }
 
-            if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(genres))
-            {
-                TempData["Error"] = "Укажите название и жанры фильма.";
-                return View(movie);
-            }
-
-            movie.Title = title.Trim();
-            movie.Year = year;
-            movie.Genres = genres.Trim();
-            movie.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
-            movie.ImageUrl = string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl.Trim();
-
-            await _context.SaveChangesAsync(cancellationToken);
             TempData["Message"] = "Фильм обновлен.";
-
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         public async Task<IActionResult> DeleteMovie(int id, CancellationToken cancellationToken)
         {
-            var movie = await _context.Movies.FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
-            if (movie is null)
+            if (!await _adminMovieService.DeleteAsync(id, cancellationToken))
             {
                 return NotFound();
             }
 
-            _context.Movies.Remove(movie);
-            await _context.SaveChangesAsync(cancellationToken);
             TempData["Message"] = "Фильм удален.";
-
             return RedirectToAction(nameof(Index));
         }
     }

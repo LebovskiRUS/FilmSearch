@@ -1,4 +1,4 @@
-@model Movie
+@model MovieFormViewModel
 
 @{
     ViewData["Title"] = "Редактирование фильма";
@@ -9,33 +9,7 @@
         <h2>Редактирование фильма</h2>
 
         <form method="post" action="@Url.Action("EditMovie", "Admin")" class="mt-4">
-            <input type="hidden" name="id" value="@Model.Id">
-
-            <div class="mb-3">
-                <label for="title" class="form-label">Название</label>
-                <input type="text" class="form-control" id="title" name="title" value="@Model.Title" maxlength="300" required>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label for="year" class="form-label">Год</label>
-                    <input type="number" class="form-control" id="year" name="year" value="@Model.Year" min="1888" max="2100">
-                </div>
-                <div class="col-md-9">
-                    <label for="genres" class="form-label">Жанры</label>
-                    <input type="text" class="form-control" id="genres" name="genres" value="@Model.Genres" maxlength="200" required>
-                </div>
-            </div>
-
-            <div class="mb-3 mt-3">
-                <label for="imageUrl" class="form-label">URL обложки</label>
-                <input type="url" class="form-control" id="imageUrl" name="imageUrl" value="@Model.ImageUrl" maxlength="500">
-            </div>
-
-            <div class="mb-4">
-                <label for="description" class="form-label">Описание</label>
-                <textarea class="form-control" id="description" name="description" rows="4">@Model.Description</textarea>
-            </div>
+            <partial name="_MovieForm" model="Model" />
 
             <div class="d-flex justify-content-between">
                 <a href="@Url.Action("Index", "Admin")" class="btn btn-outline-secondary">Назад</a>

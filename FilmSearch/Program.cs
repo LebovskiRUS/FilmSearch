@@ -39,6 +39,7 @@ builder.Services.AddScoped<AdminBootstrapper>();
 builder.Services.AddScoped<IMovieLensImportService, MovieLensImportService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IMovieService, MovieService>();
+builder.Services.AddScoped<IAdminMovieService, AdminMovieService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IRecommendationService, BaselineRecommendationService>();
 builder.Services.Configure<MlRecommendationOptions>(builder.Configuration.GetSection("MlRecommendation"));

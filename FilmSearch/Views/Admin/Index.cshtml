@@ -1,8 +1,7 @@
-@model List<Movie>
+@model AdminMoviesViewModel
 
 @{
     ViewData["Title"] = "Администрирование";
-    var defaultDatasetDirectory = ViewData["DefaultDatasetDirectory"] as string ?? string.Empty;
 }
 
 <div class="row">
@@ -21,7 +20,7 @@
                                class="form-control"
                                id="datasetDirectory"
                                name="datasetDirectory"
-                               value="@defaultDatasetDirectory"
+                               value="@Model.DefaultDatasetDirectory"
                                placeholder="C:\Datasets\ml-1m"
                                required>
                         <div class="form-text">В папке должны быть файлы users.dat, movies.dat и ratings.dat.</div>
@@ -38,30 +37,8 @@
             </div>
             <div class="card-body">
                 <form method="post" action="@Url.Action("CreateMovie", "Admin")">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="title" class="form-label">Название</label>
-                            <input type="text" class="form-control" id="title" name="title" maxlength="300" required>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="year" class="form-label">Год</label>
-                            <input type="number" class="form-control" id="year" name="year" min="1888" max="2100">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="genres" class="form-label">Жанры</label>
-                            <input type="text" class="form-control" id="genres" name="genres" maxlength="200" placeholder="Drama|Comedy" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="imageUrl" class="form-label">URL обложки</label>
-                            <input type="url" class="form-control" id="imageUrl" name="imageUrl" maxlength="500">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="description" class="form-label">Описание</label>
-                            <textarea class="form-control" id="description" name="description" rows="1"></textarea>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-success mt-3">Добавить</button>
+                    <partial name="_MovieForm" model="Model.NewMovie" />
+                    <button type="submit" class="btn btn-success">Добавить</button>
                 </form>
             </div>
         </div>
@@ -70,7 +47,7 @@
             <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
                 <h5 class="mb-0">Фильмы</h5>
                 <form method="get" class="d-flex gap-2">
-                    <input type="search" name="query" value="@ViewData["Query"]" class="form-control" placeholder="Поиск">
+                    <input type="search" name="query" value="@Model.Query" class="form-control" placeholder="Поиск">
                     <button type="submit" class="btn btn-outline-primary">Найти</button>
                 </form>
             </div>
@@ -87,14 +64,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model.Count == 0)
+                        @if (Model.Movies.Count == 0)
                         {
                             <tr>
                                 <td colspan="5" class="text-muted">Фильмы не найдены.</td>
                             </tr>
                         }
 
-                        @foreach (var movie in Model)
+                        @foreach (var movie in Model.Movies)
                         {
                             <tr>
                                 <td>@movie.Title</td>
