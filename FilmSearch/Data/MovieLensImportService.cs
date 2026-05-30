@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Text;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -11,13 +12,22 @@ namespace FilmSearch.Data
 
     public partial class MovieLensImportService : IMovieLensImportService
     {
+        private static readonly Encoding MovieLensEncoding = Encoding.Latin1;
+
         private readonly string _connectionString;
         private readonly DatabaseInitializer _databaseInitializer;
 
         public MovieLensImportService(IConfiguration configuration, DatabaseInitializer databaseInitializer)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection")
+            var connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
+
+            var connectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString)
+            {
+                CommandTimeout = 0
+            };
+
+            _connectionString = connectionStringBuilder.ConnectionString;
             _databaseInitializer = databaseInitializer;
         }
 
@@ -68,7 +78,7 @@ namespace FilmSearch.Data
                 "COPY tmp_movielens_users (movielens_user_id, gender, age, occupation, zip_code) FROM STDIN (FORMAT BINARY)",
                 cancellationToken))
             {
-                foreach (var line in File.ReadLines(usersPath))
+                foreach (var line in File.ReadLines(usersPath, MovieLensEncoding))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var parts = line.Split("::");
@@ -119,7 +129,7 @@ namespace FilmSearch.Data
                 "COPY tmp_movielens_movies (movielens_id, title, year, genres) FROM STDIN (FORMAT BINARY)",
                 cancellationToken))
             {
-                foreach (var line in File.ReadLines(moviesPath))
+                foreach (var line in File.ReadLines(moviesPath, MovieLensEncoding))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var parts = line.Split("::");
@@ -179,7 +189,7 @@ namespace FilmSearch.Data
                 "COPY tmp_movielens_ratings (movielens_user_id, movielens_movie_id, value, source_timestamp) FROM STDIN (FORMAT BINARY)",
                 cancellationToken))
             {
-                foreach (var line in File.ReadLines(ratingsPath))
+                foreach (var line in File.ReadLines(ratingsPath, MovieLensEncoding))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var parts = line.Split("::");
@@ -242,6 +252,7 @@ namespace FilmSearch.Data
         private static async Task ExecuteAsync(NpgsqlConnection connection, string sql, CancellationToken cancellationToken)
         {
             await using var command = new NpgsqlCommand(sql, connection);
+            command.CommandTimeout = 0;
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
