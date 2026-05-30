@@ -1,10 +1,10 @@
 # FilmSearch
 
-ASP.NET Core MVC application with PostgreSQL storage and a separate Python/PyTorch recommendation service.
+ASP.NET Основное приложение MVC с хранилищем PostgreSQL и отдельным сервисом рекомендаций Python/PyTorch.
 
-## Backend Startup
+## Запуск серверной части
 
-Create or update the first admin user through environment variables:
+Создайте или обновите первого пользователя-администратора с помощью переменных среды:
 
 ```powershell
 $env:BootstrapAdmin__Email="admin@example.com"
@@ -13,7 +13,7 @@ $env:BootstrapAdmin__Password="admin12345"
 dotnet run --project FilmSearch
 ```
 
-Open the site, sign in as the admin user, then use the `Админ` page to import MovieLens 1M from the folder containing:
+Откройте сайт, войдите в систему как пользователь с правами администратора, затем используйте страницу `Админ` для импорта MovieLens 1M из папки, содержащей:
 
 - `users.dat`
 - `movies.dat`
@@ -21,7 +21,7 @@ Open the site, sign in as the admin user, then use the `Админ` page to impo
 
 ## ML Service
 
-The PyTorch service lives in `ml_service`.
+Служба PyTorch находится в `ml_service`.
 
 ```powershell
 cd ml_service
@@ -42,5 +42,5 @@ Run the API:
 uvicorn app:app --host 127.0.0.1 --port 8001
 ```
 
-The .NET backend reads ML settings from `MlRecommendation` in `appsettings.json`.
-If the ML service is offline, recommendations automatically fall back to the baseline recommender.
+Серверная часть .NET считывает настройки ML из `MlRecommendation` в `appsettings.json`.
+Если служба ML отключена, рекомендации автоматически возвращаются к базовому рекомендателю.
